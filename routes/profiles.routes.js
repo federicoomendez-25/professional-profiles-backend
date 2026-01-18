@@ -1,83 +1,102 @@
-const router = require("express").Router();
-const Profile = require("../models/Profile.model");
-const { isAuthenticated } = require("../middleware/jwt.middleware");
+const express = require("express");
+const router = express.Router();
 
-// 🔹 GET /api/profiles → todos los perfiles
-router.get("/", async (req, res, next) => {
+const Profile = require("../models/Profile.model");
+const isAuthenticated = require("../middleware/isAuthenticated");
+
+/**
+ * GET ALL PROFILES
+ * GET /api/profiles
+ */
+router.get("/", async (req, res) => {
   try {
     const profiles = await Profile.find().populate("user");
-    res.status(200).json(profiles);
+    res.json(profiles);
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: "Error fetching profiles", error });
   }
 });
 
-// 🔐 POST /api/profiles → crear perfil
-router.post("/", isAuthenticated, async (req, res, next) => {
-  try {
-    const profile = await Profile.create({
-      ...req.body,
-      user: req.payload._id,
-    });
-
-    res.status(201).json(profile);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// 🔹 GET /api/profiles/:id → detalle
-router.get("/:id", async (req, res, next) => {
+/**
+ * GET PROFILE BY ID
+ * GET /api/profiles/:id
+ */
+router.get("/:id", async (req, res) => {
   try {
     const profile = await Profile.findById(req.params.id).populate("user");
-    res.json(profile);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// 🔐 PUT /api/profiles/:id → editar (solo dueño)
-router.put("/:id", isAuthenticated, async (req, res, next) => {
-  try {
-    const profile = await Profile.findById(req.params.id);
 
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }
 
-    if (profile.user.toString() !== req.payload._id) {
-      return res.status(403).json({ message: "Not authorized" });
+    res.json(profile);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching profile", error });
+  }
+});
+
+/**
+ * CREATE PROFILE ✅
+ * POST /api/profiles
+ */
+router.post("/", isAuthenticated, async (req, res) => {
+  try {
+    const { fullName, title, bio } = req.body;
+
+    if (!fullName || !title || !bio) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    const updated = await Profile.findByIdAndUpdate(
+    const newProfile = await Profile.create({
+      fullName,
+      title,
+      bio,
+      user: req.payload._id,
+    });
+
+    res.status(201).json(newProfile);
+  } catch (error) {
+    res.status(400).json({ message: "Error creating profile", error });
+  }
+});
+
+/**
+ * UPDATE PROFILE
+ * PUT /api/profiles/:id
+ */
+router.put("/:id", isAuthenticated, async (req, res) => {
+  try {
+    const updatedProfile = await Profile.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
     );
 
-    res.json(updated);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// 🔐 DELETE /api/profiles/:id → borrar (solo dueño)
-router.delete("/:id", isAuthenticated, async (req, res, next) => {
-  try {
-    const profile = await Profile.findById(req.params.id);
-
-    if (!profile) {
+    if (!updatedProfile) {
       return res.status(404).json({ message: "Profile not found" });
     }
 
-    if (profile.user.toString() !== req.payload._id) {
-      return res.status(403).json({ message: "Not authorized" });
+    res.json(updatedProfile);
+  } catch (error) {
+    res.status(400).json({ message: "Error updating profile", error });
+  }
+});
+
+/**
+ * DELETE PROFILE
+ * DELETE /api/profiles/:id
+ */
+router.delete("/:id", isAuthenticated, async (req, res) => {
+  try {
+    const deletedProfile = await Profile.findByIdAndDelete(req.params.id);
+
+    if (!deletedProfile) {
+      return res.status(404).json({ message: "Profile not found" });
     }
 
-    await Profile.findByIdAndDelete(req.params.id);
-    res.sendStatus(204);
+    res.json({ message: "Profile deleted successfully" });
   } catch (error) {
-    next(error);
+    res.status(400).json({ message: "Error deleting profile", error });
   }
 });
 
