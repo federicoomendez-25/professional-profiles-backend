@@ -1,19 +1,29 @@
 module.exports = (app) => {
+  // 404 - Route not found
   app.use((req, res, next) => {
-    // this middleware runs whenever requested page is not available
-    res.status(404).json({ message: "This route does not exist" });
+    res.status(404).json({
+      message: "This route does not exist",
+    });
   });
 
+  // Global error handler
   app.use((err, req, res, next) => {
-    // whenever you call next(err), this middleware will handle the error
-    // always logs the error
-    console.error("ERROR", req.method, req.path, err);
+    console.error("ERROR 💥", err);
 
-    // only render if the error ocurred before sending the response
-    if (!res.headersSent) {
-      res.status(500).json({
-        message: "Internal server error. Check the server console",
+    if (err.name === "ValidationError") {
+      return res.status(400).json({
+        message: err.message,
       });
     }
+
+    if (err.name === "CastError") {
+      return res.status(400).json({
+        message: "Invalid ID format",
+      });
+    }
+
+    res.status(500).json({
+      message: "Internal server error",
+    });
   });
 };

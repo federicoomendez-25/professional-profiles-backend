@@ -4,34 +4,28 @@ const projectSchema = new Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: [true, "Project title is required"],
+      minlength: [3, "Title must be at least 3 characters"],
       trim: true,
     },
-
     description: {
       type: String,
-      trim: true,
+      maxlength: [500, "Description too long"],
     },
-
     link: {
       type: String,
-      trim: true,
     },
-
     skills: {
       type: [String],
       default: [],
     },
-
     profile: {
       type: Schema.Types.ObjectId,
       ref: "Profile",
-      required: true,
+      required: [true, "Profile is required"],
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 module.exports = model("Project", projectSchema);

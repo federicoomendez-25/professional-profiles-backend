@@ -7,18 +7,15 @@ const app = express();
 require("./config")(app);
 
 // AUTH
-const authRoutes = require("./routes/auth.routes");
-app.use("/auth", authRoutes);
+app.use("/auth", require("./routes/auth.routes"));
 
 // PROFILES
-const profileRoutes = require("./routes/profiles.routes");
-app.use("/api/profiles", profileRoutes);
+app.use("/api/profiles", require("./routes/profiles.routes"));
 
 // PROJECTS
-const projectRoutes = require("./routes/project.routes");
-app.use("/api/projects", projectRoutes);
+app.use("/api/projects", require("./routes/project.routes"));
 
-// ERROR HANDLING (SIEMPRE AL FINAL)
+// ERRORS (SIEMPRE AL FINAL)
 require("./error-handling")(app);
 
 module.exports = app;
