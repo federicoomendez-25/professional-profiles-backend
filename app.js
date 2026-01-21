@@ -1,21 +1,54 @@
 require("dotenv").config();
-require("./db");
-
 const express = require("express");
+const cors = require("cors");
 const app = express();
 
+// 👇 IMPORT DB CONNECTION
+const { connectDB } = require("./db");
+
+/* =========================
+   CORS
+========================= */
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
+/* =========================
+   BODY PARSER
+========================= */
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+/* =========================
+   DB CONNECTION (EACH REQUEST)
+========================= */
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (e) {
+    next(e);
+  }
+});
+
+/* =========================
+   CONFIG
+========================= */
 require("./config")(app);
 
-// AUTH
+/* =========================
+   ROUTES
+========================= */
 app.use("/auth", require("./routes/auth.routes"));
-
-// PROFILES
 app.use("/api/profiles", require("./routes/profiles.routes"));
-
-// PROJECTS
 app.use("/api/projects", require("./routes/project.routes"));
 
-// ERRORS (SIEMPRE AL FINAL)
+/* =========================
+   ERROR HANDLING (AL FINAL)
+========================= */
 require("./error-handling")(app);
 
 module.exports = app;
