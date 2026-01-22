@@ -1,20 +1,11 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
 const app = express();
 
 // 👇 IMPORT DB CONNECTION
 const { connectDB } = require("./db");
 
-/* =========================
-   CORS
-========================= */
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  })
-);
+
 
 /* =========================
    BODY PARSER
