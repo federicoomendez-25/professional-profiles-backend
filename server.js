@@ -1,8 +1,23 @@
+require("dotenv").config();
 const app = require("./app");
+const { connectDB } = require("./db");
 
-// ℹ️ Sets the PORT for our app to have access to it. If no env has been set, we hard code it to 5005
 const PORT = process.env.PORT || 5005;
 
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-});
+/* =========================
+   START SERVER + DB
+========================= */
+const startServer = async () => {
+  try {
+    await connectDB();
+    console.log("✅ Database connected");
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Error starting server:", error);
+  }
+};
+
+startServer();
